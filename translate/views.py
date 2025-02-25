@@ -3,8 +3,11 @@ from deep_translator import GoogleTranslator
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-@api_view(['POST'])
+@api_view(['GET','POST'])
 def translate_text(request):
+    if request.method == 'GET':
+        return Response({"message": "Send a POST request with text & target_lang"})
+    
     data = request.data
     text = data.get("text", "")
     target_lang = data.get("target_lang", "en")  # Default: English
