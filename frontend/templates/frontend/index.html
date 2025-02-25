@@ -10,13 +10,19 @@
     <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
         <h2 class="text-2xl font-bold text-center mb-4">Language Translator</h2>
         
-        <!-- Input Box for Typing or Speech -->
-        <input type="text" id="inputText" class="w-full p-2 border rounded" placeholder="Enter text or use mic..." />
-
-        <!-- Mic Button for Speech Recognition -->
-        <button id="mic-button" class="bg-red-500 text-white p-2 rounded w-full mt-2">🎤 Speak</button>
+        <!-- Select Input Language (For Speech) -->
+        <label for="inputLang">Select Input Language:</label>
+        <select id="inputLang" class="w-full p-2 border rounded my-2">
+            <option value="en-US">English</option>
+            <option value="hi-IN">Hindi</option>
+            <option value="fr-FR">French</option>
+            <option value="es-ES">Spanish</option>
+            <option value="de-DE">German</option>
+        </select>
         
-        <select id="targetLang" class="w-full p-2 border rounded my-3">
+        <!-- Select Target Language (For Translation) -->
+        <label for="targetLang">Select Target Language:</label>
+        <select id="targetLang" class="w-full p-2 border rounded my-2">
             <option value="en">English</option>
             <option value="fr">French</option>
             <option value="es">Spanish</option>
@@ -24,7 +30,11 @@
             <option value="hi">Hindi</option>
         </select>
         
-        <button onclick="translateText()" class="bg-blue-500 text-white p-2 rounded w-full">Translate</button>
+        <!-- Speech to Text Input Box -->
+        <input type="text" id="inputText" class="w-full p-2 border rounded my-2" placeholder="Enter text or use mic..." />
+        <button id="mic-button" class="bg-red-500 text-white p-2 rounded w-full">🎤 Speak</button>
+        
+        <button onclick="translateText()" class="bg-blue-500 text-white p-2 rounded w-full mt-2">Translate</button>
         
         <h3 class="text-lg font-semibold mt-4">Translated Text:</h3>
         <p id="translatedText" class="bg-gray-200 p-2 rounded"></p>
@@ -47,33 +57,29 @@
             .catch(error => console.error("Error:", error));
         }
 
-        // 🎤 Speech Recognition Code
         document.addEventListener("DOMContentLoaded", () => {
-            console.log("JavaScript Loaded ✅");
-
             const micButton = document.getElementById("mic-button");
             const inputField = document.getElementById("inputText");
-
-            if (!micButton || !inputField) {
-                console.error("Mic button or input field not found in HTML!");
-                return;
-            }
+            const inputLangSelect = document.getElementById("inputLang");
 
             if ("webkitSpeechRecognition" in window) {
-                console.log("Speech Recognition Supported ✅");
                 const recognition = new webkitSpeechRecognition();
                 recognition.continuous = false;
                 recognition.interimResults = false;
-                recognition.lang = "en-US";
+                
+                function updateRecognitionLanguage() {
+                    recognition.lang = inputLangSelect.value;
+                }
+
+                inputLangSelect.addEventListener("change", updateRecognitionLanguage);
+                updateRecognitionLanguage();
 
                 micButton.addEventListener("click", () => {
-                    console.log("Mic button clicked 🎤");
                     recognition.start();
                     micButton.innerText = "Listening...";
                 });
 
                 recognition.onresult = (event) => {
-                    console.log("Speech Detected:", event.results[0][0].transcript);
                     inputField.value = event.results[0][0].transcript;
                     micButton.innerText = "🎤 Speak";
                 };
@@ -83,11 +89,9 @@
                     micButton.innerText = "🎤 Speak";
                 };
             } else {
-                console.error("Speech recognition not supported in this browser.");
                 alert("Speech recognition is not supported in your browser.");
             }
         });
     </script>
 </body>
 </html>
-
