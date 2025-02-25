@@ -10,7 +10,11 @@
     <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
         <h2 class="text-2xl font-bold text-center mb-4">Language Translator</h2>
         
-        <textarea id="inputText" class="w-full p-2 border rounded" placeholder="Enter text..."></textarea>
+        <!-- Input Box for Typing or Speech -->
+        <input type="text" id="inputText" class="w-full p-2 border rounded" placeholder="Enter text or use mic..." />
+
+        <!-- Mic Button for Speech Recognition -->
+        <button id="mic-button" class="bg-red-500 text-white p-2 rounded w-full mt-2">🎤 Speak</button>
         
         <select id="targetLang" class="w-full p-2 border rounded my-3">
             <option value="en">English</option>
@@ -42,6 +46,48 @@
             })
             .catch(error => console.error("Error:", error));
         }
+
+        // 🎤 Speech Recognition Code
+        document.addEventListener("DOMContentLoaded", () => {
+            console.log("JavaScript Loaded ✅");
+
+            const micButton = document.getElementById("mic-button");
+            const inputField = document.getElementById("inputText");
+
+            if (!micButton || !inputField) {
+                console.error("Mic button or input field not found in HTML!");
+                return;
+            }
+
+            if ("webkitSpeechRecognition" in window) {
+                console.log("Speech Recognition Supported ✅");
+                const recognition = new webkitSpeechRecognition();
+                recognition.continuous = false;
+                recognition.interimResults = false;
+                recognition.lang = "en-US";
+
+                micButton.addEventListener("click", () => {
+                    console.log("Mic button clicked 🎤");
+                    recognition.start();
+                    micButton.innerText = "Listening...";
+                });
+
+                recognition.onresult = (event) => {
+                    console.log("Speech Detected:", event.results[0][0].transcript);
+                    inputField.value = event.results[0][0].transcript;
+                    micButton.innerText = "🎤 Speak";
+                };
+
+                recognition.onerror = (event) => {
+                    console.error("Speech Recognition Error:", event);
+                    micButton.innerText = "🎤 Speak";
+                };
+            } else {
+                console.error("Speech recognition not supported in this browser.");
+                alert("Speech recognition is not supported in your browser.");
+            }
+        });
     </script>
 </body>
 </html>
+
