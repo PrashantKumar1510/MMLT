@@ -15,15 +15,16 @@ from deep_translator import GoogleTranslator
 from gtts import gTTS
 from langdetect import detect
 import whisper
-
+from functools import lru_cache
 from .translate_video import process_video
 from .utils import extract_audio_from_video, transcribe_audio, generate_speech_file
 
 # Add FFmpeg to system PATH for subprocess and whisper to work
 os.environ["PATH"] += os.pathsep + r"C:\Users\lenovo\Downloads\ffmpeg-7.1.1-essentials_build\ffmpeg\bin"
 
-# Load Whisper model globally (only once)
-model = whisper.load_model("base")
+@lru_cache()
+def get_whisper_model():
+    return whisper.load_model("base")
 
 
 # ----------------- Web Page View: Home Page ----------------- #
@@ -114,13 +115,14 @@ def transcribe_audio_api(request):
     """
     if request.FILES.get("audio_file"):
         audio_file = request.FILES["audio_file"]
-
+        #save file temporarily
         with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as temp_audio:
             for chunk in audio_file.chunks():
                 temp_audio.write(chunk)
             temp_audio_path = temp_audio.name
 
         try:
+            model = get_whisper_model()
             result = model.transcribe(temp_audio_path)
             transcription = result["text"]
         except Exception as e:
