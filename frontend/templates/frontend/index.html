@@ -1,97 +1,190 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Language Translator</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Language Translator App | Speak, Type, Upload</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
-    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-        <h2 class="text-2xl font-bold text-center mb-4">Language Translator</h2>
-        
-        <!-- Select Input Language (For Speech) -->
-        <label for="inputLang">Select Input Language:</label>
-        <select id="inputLang" class="w-full p-2 border rounded my-2">
-            <option value="en-US">English</option>
-            <option value="hi-IN">Hindi</option>
-            <option value="fr-FR">French</option>
-            <option value="es-ES">Spanish</option>
-            <option value="de-DE">German</option>
-        </select>
-        
-        <!-- Select Target Language (For Translation) -->
-        <label for="targetLang">Select Target Language:</label>
-        <select id="targetLang" class="w-full p-2 border rounded my-2">
-            <option value="en">English</option>
-            <option value="fr">French</option>
-            <option value="es">Spanish</option>
-            <option value="de">German</option>
-            <option value="hi">Hindi</option>
-        </select>
-        
-        <!-- Speech to Text Input Box -->
-        <input type="text" id="inputText" class="w-full p-2 border rounded my-2" placeholder="Enter text or use mic..." />
-        <button id="mic-button" class="bg-red-500 text-white p-2 rounded w-full">🎤 Speak</button>
-        
-        <button onclick="translateText()" class="bg-blue-500 text-white p-2 rounded w-full mt-2">Translate</button>
-        
-        <h3 class="text-lg font-semibold mt-4">Translated Text:</h3>
-        <p id="translatedText" class="bg-gray-200 p-2 rounded"></p>
+
+<body class="bg-gradient-to-br from-gray-100 to-gray-300 min-h-screen flex items-center justify-center p-4">
+  <div class="bg-white shadow-2xl rounded-2xl p-8 max-w-2xl w-full">
+    <h2 class="text-3xl font-extrabold text-center text-blue-900 mb-6">🌐 Language Translator</h2>
+
+    <!-- ✏️ Input Text -->
+    <input type="text" id="inputText" class="w-full p-3 border rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Type your text or use mic..." />
+
+    <!-- 🌐 Source Language -->
+    <select id="inputLang" class="w-full p-3 border rounded-lg mb-4 bg-white">
+      <option value="auto">Auto Detect</option>
+      <option value="en">English</option>
+      <option value="fr">French</option>
+      <option value="es">Spanish</option>
+      <option value="de">German</option>
+      <option value="hi">Hindi</option>
+    </select>
+
+    <!-- 🎤 Mic Button -->
+    <button id="mic-button" class="bg-red-600 text-white py-2 px-4 rounded-lg w-full mb-4 hover:bg-red-700">🎤 Speak</button>
+
+    <!-- 🎵 Audio Upload -->
+    <form id="audio-upload-form" enctype="multipart/form-data" method="post" action="/api/transcribe_audio/" class="mb-6">
+      {% csrf_token %}
+      <input type="file" name="audio_file" accept="audio/*" class="mb-3 border rounded-lg p-2 w-full" required />
+      <button type="submit" class="bg-purple-600 text-white py-2 px-4 rounded-lg w-full hover:bg-purple-700">🎵 Upload & Transcribe Audio</button>
+    </form>
+
+    <!-- 🎬 Video Upload -->
+    <form method="POST" enctype="multipart/form-data" action="{% url 'upload_video' %}" class="mb-6">
+      {% csrf_token %}
+      <label class="block font-medium mb-2 text-gray-700">Upload Video File:</label>
+      <input type="file" name="video" accept="video/*" class="w-full border rounded-lg p-2 mb-3" required />
+      <button type="submit" class="bg-yellow-500 text-white py-2 px-4 rounded-lg w-full hover:bg-yellow-600">📤 Upload Video</button>
+    </form>
+
+    <!-- 🌍 Target Language -->
+    <select id="targetLang" class="w-full p-3 border rounded-lg mb-4 bg-white">
+      <option value="en">English</option>
+      <option value="fr">French</option>
+      <option value="es">Spanish</option>
+      <option value="de">German</option>
+      <option value="hi">Hindi</option>
+    </select>
+
+    <!-- 🔄 Translate -->
+    <button onclick="translateText()" class="bg-blue-600 text-white py-2 px-4 rounded-lg w-full hover:bg-blue-700">🔄 Translate</button>
+
+    <!-- 📜 Translated Output -->
+    <div class="mt-6">
+      <h3 class="text-lg font-semibold text-gray-800 mb-2">📜 Translated Text:</h3>
+      <p id="translatedText" class="bg-gray-100 p-3 rounded-lg text-gray-700"></p>
     </div>
 
-    <script>
-        function translateText() {
-            const text = document.getElementById("inputText").value;
-            const targetLang = document.getElementById("targetLang").value;
+    <!-- 🔊 Play Translated Audio -->
+    <button id="play-audio" class="bg-green-600 text-white py-2 px-4 rounded-lg w-full mt-4 hover:bg-green-700">🔊 Play Translated Audio</button>
 
-            fetch("/api/translate/", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ text, target_lang: targetLang })
-            })
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById("translatedText").innerText = data.translated_text;
-            })
-            .catch(error => console.error("Error:", error));
+    <!-- 🎧 Audio Transcript -->
+    <div class="mt-6">
+      <h3 class="text-lg font-semibold text-gray-800 mb-2">📝 Transcribed Audio:</h3>
+      <p id="audio-transcript" class="bg-gray-100 p-3 rounded-lg text-gray-700"></p>
+    </div>
+
+    <!-- 🎥 Video Output Placeholder -->
+    {% if filename_without_ext %}
+    <div class="mt-6">
+      <h3 class="text-lg font-semibold text-gray-800 mb-2">🎥 Translated Video:</h3>
+      <video controls class="w-full rounded-lg">
+        <source src="{{ MEDIA_URL }}{{ filename_without_ext }}_translated.mp4" type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
+    </div>
+    {% endif %}
+  </div>
+
+  <script>
+    function translateText() {
+      const text = document.getElementById("inputText").value;
+      const targetLang = document.getElementById("targetLang").value;
+      const inputLang = document.getElementById("inputLang").value;
+
+      fetch("/api/translate/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          text,
+          target_lang: targetLang,
+          source_lang: inputLang
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        const translated = data.translated_text;
+        document.getElementById("translatedText").innerText = translated;
+
+        // Play translated audio
+        fetch("/api/text_to_speech/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ text: translated, lang: targetLang })
+        })
+        .then(response => response.blob())
+        .then(blob => {
+          const url = URL.createObjectURL(blob);
+          const audio = new Audio(url);
+          document.getElementById("play-audio").onclick = () => audio.play();
+        });
+      })
+      .catch(error => console.error("Translation Error:", error));
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const micButton = document.getElementById("mic-button");
+      const inputField = document.getElementById("inputText");
+      const languageSelect = document.getElementById("inputLang");
+
+      if ("webkitSpeechRecognition" in window) {
+        const recognition = new webkitSpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+
+        const langMapping = {
+          auto: "en-US",
+          en: "en-US",
+          fr: "fr-FR",
+          es: "es-ES",
+          de: "de-DE",
+          hi: "hi-IN"
+        };
+
+        function setRecognitionLanguage() {
+          const selectedLang = languageSelect.value;
+          recognition.lang = langMapping[selectedLang] || "en-US";
         }
 
-        document.addEventListener("DOMContentLoaded", () => {
-            const micButton = document.getElementById("mic-button");
-            const inputField = document.getElementById("inputText");
-            const inputLangSelect = document.getElementById("inputLang");
+        setRecognitionLanguage();
+        languageSelect.addEventListener("change", setRecognitionLanguage);
 
-            if ("webkitSpeechRecognition" in window) {
-                const recognition = new webkitSpeechRecognition();
-                recognition.continuous = false;
-                recognition.interimResults = false;
-                
-                function updateRecognitionLanguage() {
-                    recognition.lang = inputLangSelect.value;
-                }
-
-                inputLangSelect.addEventListener("change", updateRecognitionLanguage);
-                updateRecognitionLanguage();
-
-                micButton.addEventListener("click", () => {
-                    recognition.start();
-                    micButton.innerText = "Listening...";
-                });
-
-                recognition.onresult = (event) => {
-                    inputField.value = event.results[0][0].transcript;
-                    micButton.innerText = "🎤 Speak";
-                };
-
-                recognition.onerror = (event) => {
-                    console.error("Speech Recognition Error:", event);
-                    micButton.innerText = "🎤 Speak";
-                };
-            } else {
-                alert("Speech recognition is not supported in your browser.");
-            }
+        micButton.addEventListener("click", () => {
+          recognition.start();
+          micButton.innerText = "🎙 Listening...";
         });
-    </script>
+
+        recognition.onresult = (event) => {
+          inputField.value = event.results[0][0].transcript;
+          micButton.innerText = "🎤 Speak";
+        };
+
+        recognition.onerror = (event) => {
+          micButton.innerText = "🎤 Speak";
+          alert("Speech recognition failed.");
+        };
+      }
+    });
+
+    document.getElementById('audio-upload-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+      const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+      try {
+        const response = await fetch('/api/transcribe_audio/', {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': csrftoken
+          },
+          body: formData
+        });
+
+        const data = await response.json();
+        document.getElementById("audio-transcript").innerText = data.transcription || "Transcription failed.";
+      } catch (err) {
+        document.getElementById("audio-transcript").innerText = "Error during transcription.";
+      }
+    });
+  </script>
 </body>
 </html>

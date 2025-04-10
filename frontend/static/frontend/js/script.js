@@ -49,3 +49,16 @@ document.addEventListener("DOMContentLoaded", () => {
         alert("Speech recognition not supported in this browser.");
     }
 });
+
+fetch("/api/text_to_speech/", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text: "Hello, how are you?", lang: "en" })
+})
+.then(response => response.blob())
+.then(blob => {
+    const url = URL.createObjectURL(blob);
+    const audio = new Audio(url);
+    audio.play();
+})
+.catch(error => console.error("Error:", error));
