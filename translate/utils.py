@@ -43,20 +43,25 @@ def transcribe_audio(audio_path, language="en"):
         return ""
 
 # ✅ Function to generate a speech (MP3 file) from input text
-def generate_speech_file(text, lang='en'):
+# utils.py
+
+def generate_speech_file(text, lang='en', filepath=None):
     """
     Converts input text into speech and saves it as an MP3 file.
 
     Args:
         text (str): Text to convert to speech.
         lang (str): Language code (e.g., 'en', 'hi', 'fr').
+        filepath (str): Optional. Path to save the MP3 file. If None, generates one automatically.
 
     Returns:
-        str: Path to the generated MP3 file.
+        str: Path to the generated MP3 file or empty string on failure.
     """
     try:
-        filename = f"{uuid.uuid4().hex}.mp3"
-        filepath = os.path.join("media", "tts", filename)
+        if not filepath:
+            filename = f"{uuid.uuid4().hex}.mp3"
+            filepath = os.path.join("media", "tts", filename)
+
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
 
         tts = gTTS(text=text, lang=lang)

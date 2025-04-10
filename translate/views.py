@@ -85,11 +85,14 @@ def translate_text(request):
 
 
 # ----------------- API: Text to Speech ----------------- #
+# views.py
+
 @api_view(['POST'])
 def text_to_speech(request):
     """
     Convert text to speech using gTTS.
     Accepts: text, lang
+    Returns: MP3 audio file
     """
     text = request.data.get("text", "")
     lang = request.data.get("lang", "en")
@@ -100,10 +103,17 @@ def text_to_speech(request):
     try:
         filename = f"speech_{uuid.uuid4().hex}.mp3"
         filepath = os.path.join(settings.MEDIA_ROOT, filename)
-        generate_speech_file(text, lang, filepath)
-        return FileResponse(open(filepath, "rb"), content_type="audio/mpeg")
+
+        # Generate speech and save it to filepath
+        generated_path = generate_speech_file(text, lang, filepath)
+
+        if not os.path.exists(generated_path):
+            return JsonResponse({"error": "Failed to generate speech file"}, status=500)
+
+        return FileResponse(open(generated_path, "rb"), content_type="audio/mpeg")
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
+
 
 
 # ----------------- API: Transcribe Audio File ----------------- #

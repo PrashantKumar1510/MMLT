@@ -10,7 +10,7 @@ urlpatterns = [
     path('', views.index, name='index'),
     path('translate/', translate_text, name='translate_text'),
     path("text_to_speech/", text_to_speech, name="text_to_speech"),
-    path('api/transcribe_audio_api/', views.transcribe_audio, name='transcribe_audio'),
+    path('api/transcribe_audio_api/', views.transcribe_audio, name='transcribe_audio_api'),
     path('upload-video/', views.upload_video, name='upload_video'),
 ]
 if settings.DEBUG:
